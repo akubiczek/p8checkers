@@ -8,8 +8,14 @@ main {
         ui.draw_info()
         ui.draw_board()
 
-        repeat {
+        while not board.is_game_over() {
             uword move = ui.get_user_move()
+            txt.print_uw(move)
+
+            if (board.is_legal_move(move)) {
+                board.make_move(move)
+            }
+            ui.draw_board()
         }
     }
 
@@ -56,20 +62,41 @@ board {
         WHITE_PIECE, WHITE_PIECE, WHITE_PIECE, WHITE_PIECE, WHITE_PIECE,
         WHITE_PIECE, WHITE_PIECE, WHITE_PIECE, WHITE_PIECE, WHITE_PIECE
         ]    
+
+    sub is_legal_move(uword move) ->ubyte {
+        ;TODO implement
+        return true
+    }
+
+    sub make_move(uword move) {
+        ;move is encoded into a single word: lsb is a source field index, msb is a destination field index
+
+        board_fields[msb(move)] = board_fields[lsb(move)]
+        board_fields[lsb(move)] = EMPTY_FIELD
+    }
+
+    sub is_game_over() -> ubyte {
+        ;TODO implement
+        return false
+    }
 }
 
 ui {
     const ubyte BOARD_X_OFFSET = 10
     const ubyte BOARD_Y_OFFSET = 3
 
-    const ubyte WHITE_CHECKER_COLOR = 1;
-    const ubyte BLACK_CHECKER_COLOR = 8;
-    const ubyte LIGHT_FIELD_COLOR = 6;
-    const ubyte DARK_FIELD_COLOR = 3;
-    const ubyte CURSOR_BG_COLOR = 10;
+    const ubyte WHITE_CHECKER_COLOR = 1
+    const ubyte BLACK_CHECKER_COLOR = 8
+    const ubyte LIGHT_FIELD_COLOR = 6
+    const ubyte DARK_FIELD_COLOR = 3
+    const ubyte CURSOR_BG_COLOR = 10
+    const ubyte CHOOSEN_BG_COLOR = 5
 
-    ubyte cursor_x = 7
-    ubyte cursor_y = 7
+    ubyte cursor_x = board.BOARD_WIDTH - 1
+    ubyte cursor_y = board.BOARD_HEIGHT - 1
+
+    ubyte choosen_piece_x = 255
+    ubyte choosen_piece_y = 255
 
     sub xy_to_index(ubyte x, ubyte y) -> ubyte {
         ;board array has 50 items, not 100
@@ -109,8 +136,11 @@ ui {
     }
 
     sub get_bg_color(ubyte x, ubyte y) -> ubyte {
-        if (x == cursor_x and y == cursor_y) {
-            return CURSOR_BG_COLOR
+        if (x == choosen_piece_x and y == choosen_piece_y) {
+            return CHOOSEN_BG_COLOR
+        }
+        else if (x == cursor_x and y == cursor_y) {
+            return CURSOR_BG_COLOR 
         } else if ((x + y) % 2) {
             return LIGHT_FIELD_COLOR
         }
@@ -148,54 +178,82 @@ ui {
         txt.print("c - change colors")
     }
 
+    sub clear_choosen_piece() {
+        choosen_piece_x = 255
+        choosen_piece_y = 255
+    }
+
     sub get_user_move() -> uword {
         ;move is encoded into a single word: lsb is a source field index, msb is a destination field index
+        const ubyte KEY_RETURN = 13
+        const ubyte KEY_ESC = 3
+
         ubyte source = 255
         ubyte destination = 255
 
-        ;TODO not finished yet
+        do {
+            ubyte key_pressed = check_key_press()
 
+            if (key_pressed == KEY_RETURN and source == 255) {
+                source = xy_to_index(cursor_x, cursor_y)
+                choosen_piece_x = cursor_x
+                choosen_piece_y = cursor_y
+                draw_board()
+            } else if (key_pressed == KEY_RETURN and source != 255) {
+                destination = xy_to_index(cursor_x, cursor_y)
+            } else if (key_pressed == KEY_ESC) {
+                ;cancel move
+                source = 255
+                clear_choosen_piece()
+                draw_board()
+            }
+
+        } until source != 255 and destination != 255
+
+        clear_choosen_piece()
         return mkword(destination, source)
-    }
 
-    sub check_key_press ()  {
-        ubyte key=c64.GETIN()
-        when key {
-            145 -> {
-                ;up
-                if (cursor_y > 0) {
-                    cursor_y--
+        sub check_key_press () -> ubyte  {
+            ubyte key=c64.GETIN()
+            when key {
+                145 -> {
+                    ;up
+                    if (cursor_y > 0) {
+                        cursor_y--
+                    }
                 }
-            }
-            17 -> {
-                ;down
-                if (cursor_y < board.BOARD_HEIGHT - 1) {
-                    cursor_y++
+                17 -> {
+                    ;down
+                    if (cursor_y < board.BOARD_HEIGHT - 1) {
+                        cursor_y++
+                    }
                 }
-            }
-            29 -> {
-                ;right
-                if (cursor_x < board.BOARD_WIDTH - 1) {
-                    cursor_x++
+                29 -> {
+                    ;right
+                    if (cursor_x < board.BOARD_WIDTH - 1) {
+                        cursor_x++
+                    }
                 }
-            }
-            157 -> {
-                ;left
-                if (cursor_x > 0) {
-                    cursor_x--
+                157 -> {
+                    ;left
+                    if (cursor_x > 0) {
+                        cursor_x--
+                    }
                 }
+                13 -> {
+                    return KEY_RETURN
+                }
+                3 -> {
+                    return KEY_ESC
+                }            
             }
-            13 -> {
-                ;return
+            
+            if (key != 0) {
+                draw_board()
+                txt.print_ub0(key)
             }
-            3 -> {
-                ;esc or stop or ctrl+c
-            }            
-        }
-        
-        if (key != 0) {
-            draw_board()
-            txt.print_ub0(key)
-        }
-    }      
+
+            return key
+        }          
+    }
 }
