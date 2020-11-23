@@ -95,6 +95,12 @@ ui {
         txt.print("c - change colors")
     }
 
+    sub draw_gameover() {
+        txt.plot(13, 10)
+        txt.color(7)
+        txt.print("game over")        
+    }
+
     sub clear_choosen_piece() {
         choosen_piece_x = 255
         choosen_piece_y = 255
