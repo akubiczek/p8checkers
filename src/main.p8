@@ -15,7 +15,7 @@ main {
         
         while not board.is_game_over() {
             uword move = ui.get_user_move()
-            txt.print_uwhex(move, 0)
+            ;txt.print_uwhex(move, 0)
             byte move_index = board.legal_move_index(move)
 
             if (move_index != -1) {
