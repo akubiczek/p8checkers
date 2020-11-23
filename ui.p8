@@ -15,10 +15,30 @@ ui {
     ubyte choosen_piece_x = 255
     ubyte choosen_piece_y = 255
 
+    sub init() {
+        void cx16.screen_set_mode(0)
+    }    
+
     sub xy_to_index(ubyte x, ubyte y) -> ubyte {
         ;board array has 50 items, not 100
         ;top left corner is 0,0 (x,y)
-        return y * (board.BOARD_WIDTH / 2) + x / 2
+        ubyte index = y * (board.BOARD_WIDTH / 2) + x / 2
+
+        ;fake fields offset
+        if (y > 1) {
+            index++
+        }
+        if (y > 3) {
+            index++
+        }        
+        if (y > 5) {
+            index++
+        }
+        if (y > 7) {
+            index++
+        }             
+
+        return index
     }
 
     sub is_dark_field(ubyte x, ubyte y) -> ubyte {
