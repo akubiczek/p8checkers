@@ -17,7 +17,38 @@ ui {
 
     sub init() {
         void cx16.screen_set_mode(0)
+
+        ui.draw_info()
+        ui.draw_board()        
     }    
+
+    sub ask_who_plays() -> ubyte {
+        txt.color2(1, 6)
+        txt.plot(5, 10)
+        txt.print("                               ")
+        txt.plot(5, 11)
+        txt.print("           who plays?          ")
+        txt.plot(5, 12)
+        txt.print("                               ")
+        txt.plot(5, 13)
+        txt.print("   1 - player vs computer      ")
+        txt.plot(5, 14)
+        txt.print("   2 - player vs player        ")
+        txt.plot(5, 15)
+        txt.print("   3 - computer vs computer    ")
+        txt.plot(5, 16)
+        txt.print("                               ")
+        ubyte key
+        do {
+            key=c64.GETIN()
+        } until key >= 49 and key <= 51
+        
+        txt.fill_screen(0,0) ;clear screen and colors
+        ui.draw_info()
+        ui.draw_board()
+
+        return key-48       
+    }
 
     sub xy_to_index(ubyte x, ubyte y) -> ubyte {
         ;board array has 50 items, not 100

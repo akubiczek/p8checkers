@@ -49,17 +49,17 @@ board {
             calculate_regular_moves()
         }
 
-        ;txt.plot(0, 3)
-        ;txt.print("moves:")
-        ;ubyte i
-        ;for i in 0 to moves_length - 1 {
-        ;    txt.plot(0, 4 + i)
-        ;    txt.print_uwhex(moves[i], 0)
-        ;}
-        ;for i in moves_length to moves_length + 5 {
-        ;    txt.plot(0, 4 + i)
-        ;    txt.print("      ")
-        ;}
+        txt.plot(0, 3)
+        txt.print("moves:")
+        ubyte i
+        for i in 0 to moves_length - 1 {
+            txt.plot(0, 4 + i)
+            txt.print_uwhex(moves[i], 0)
+        }
+        for i in moves_length to moves_length + 5 {
+            txt.plot(0, 4 + i)
+            txt.print("      ")
+        }
     }
 
     sub calculate_jumps() {
