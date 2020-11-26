@@ -20,8 +20,8 @@
 ##
 ################################################################
 
-name                   = mysample
-file_extensions []     = mysample;
+name                   = prog8
+file_extensions []     = p8, prog8;
 
 ################################################################
 ## Constants
@@ -35,26 +35,61 @@ __MY_CONSTANT \= (\b[a-z][a-z0-9]*)
 
 styles [] {
 
-.comment : style {
+.comment.line : style {
    color                 = light_green
    italic                = true
    ace_scope             = comment
-   textmate_scope        = comment
+   textmate_scope        = comment.line
    pygments_scope        = Comment
 }
 
-.keyword : style {
+.keyword.control : style {
    color     = cyan
    ace_scope             = keyword
-   textmate_scope        = keyword
+   textmate_scope        = keyword.control
    pygments_scope        = Keyword
 }
 
-.type : style {
+.keyword.operator : style {
+   color     = cyan
+   ace_scope             = keyword
+   textmate_scope        = keyword.operator
+   pygments_scope        = Keyword
+}
+
+.constant.language : style {
+   color     = purple
+   ace_scope             = keyword
+   textmate_scope        = constant.language
+   pygments_scope        = Keyword
+}
+
+.storage.type : style {
    color     = brown
    ace_scope             = keyword
-   textmate_scope        = keyword
+   textmate_scope        = storage.type
    pygments_scope        = Keyword
+}
+
+.storage.modifier : style {
+   color     = brown
+   ace_scope             = keyword
+   textmate_scope        = storage.modifier
+   pygments_scope        = Keyword
+}
+
+.entity.name.section : style {
+   color                 = grey
+   ace_scope             = text
+   textmate_scope        = entity.name.section
+   pygments_scope        = String
+}
+
+.entity.name.function : style {
+   color                 = green
+   ace_scope             = text
+   textmate_scope        = entity.name.function
+   pygments_scope        = String
 }
 
 .numeric : style {
@@ -81,7 +116,7 @@ styles [] {
 .directive : style {
    color                 = pink
    ace_scope             = text
-   textmate_scope        = text
+   textmate_scope        = meta
    pygments_scope        = String
 }
 
@@ -90,6 +125,13 @@ styles [] {
    background_color      = red
    ace_scope             = invalid
    textmate_scope        = invalid
+   pygments_scope        = Generic.Error
+}
+
+.support.function  : style {
+   color                 = yellow
+   ace_scope             = invalid
+   textmate_scope        = .support.function
    pygments_scope        = Generic.Error
 }
 
@@ -138,7 +180,7 @@ main : context {
       }
       : include "numeric" ;
       : include "keywords";
-      : include "types";
+      : include "storage";
       : pattern {
          regex       \= (,)
          styles []    = .punctuation;
@@ -147,19 +189,54 @@ main : context {
 
    : pattern {
       regex          \= (\;.+)
-      styles []       = .comment;
+      styles []       = .comment.line;
    }
    
+   : inline_push {
+      regex          \= (\bif\b)
+      styles []       = .keyword.control;
+      : pop {
+         regex       \= (\))
+         styles []    = .punctuation;
+      }      
+      : include "numeric" ;
+      : include "storage"; 
+      : include "constant";
+   }   
+   
    : include "keywords";
-   : include "types";
-
+   : include "storage";
+   : include "constant";
+   : include "support";
 
    : pattern {
-      regex          \= (^\s*%\S+)
+      regex          \= (^\s*%\w+)
       styles []       = .directive;
    }
    
- 
+   : inline_push {
+      regex          \= (\w+)\s*(\()
+      styles []       = .entity.name.function, .punctuation;
+
+      : pop {
+         regex       \= (\))
+         styles []    = .punctuation;
+      }
+      : include "numeric" ;
+      : include "storage"; 
+      : include "constant";
+   }   
+   
+   : pattern {
+      regex          \= (\b\w+\.)
+      styles []       = .entity.name.section;
+   }
+   
+   : pattern {
+      regex          \= (\b\w+\s*)(\{)
+      styles []       = .entity.name.section, .punctuation;
+   }    
+
 }
 
 #################################################
@@ -168,18 +245,44 @@ main : context {
 
 keywords : context {
    : pattern {
-      regex          \= (\b(sub|const|for|in|to|do|while|until|repeat|if|else|and|or)\b)
-      styles []       = .keyword;
+      regex          \= (\b(sub|for|in|to|do|while|until|repeat|else|when|return)\b)
+      styles []       = .keyword.control;
    }
+   
+   : pattern {
+      regex          \= (\b(and|or)\b)
+      styles []       = .keyword.operator;
+   }   
 }
 
-types : context {
+storage : context {
    
    : pattern {
       regex          \= (\b(void|ubyte|byte|word|uword|float|str)\b)
-      styles []       = .type;
+      styles []       = .storage.type;
+   }
+   
+   : pattern {
+      regex          \= (\b(const)\b)
+      styles []       = .storage.modifier;
+   }   
+}
+
+constant : context {
+   : pattern {
+      regex          \= (true|false)
+      styles []       = .constant.language;
    } 
 }
+
+support : context {
+   : pattern {
+      regex          \= (\b(abs|atan|ceil|cos|cos8u|cos8|cos16u|cos16|deg|floor|ln|log2|rad|round|sin|sgn|sin8u|sin8|sin16u|sin16|sqrt16|sqrt|tan|any|all|len|max|min|reverse|sum|sort|memcopy|memset|memsetw|leftstr|rightstr|strlen|strcmp|substr|exit|lsb|msb|mkword|rnd|rndw|rndf|rol|rol2|ror|ror2|rsave|rrestore|read_flags|sizeof|set_carry|clear_carry|set_irqd|clear_irqd|swap)\b)
+      styles []       = .support.function;
+   }
+}
+
+
 
 ###########################################
 ## Numeric Context

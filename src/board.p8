@@ -17,6 +17,7 @@ board {
     ubyte[] piece_color = [BLACK_PIECE, WHITE_PIECE]
     ubyte[BOARD_FIELDS] board_fields   
 
+    ubyte[] opponents = [WHITE_PIECE, WHITE_KING, BLACK_PIECE, BLACK_KING]
     ubyte who_plays
     ubyte who_waits
     ubyte moves_length = 0
@@ -73,68 +74,157 @@ board {
     }
 
     sub calculate_jumps_from(ubyte source_field) {
-        ;can jump forward right
-        if (source_field >= 10 and board_fields[source_field] == piece_color[who_plays] and board_fields[source_field-10] == EMPTY_FIELD and board_fields[source_field-5] == piece_color[who_waits]) {
-            moves[moves_length] = mkword(source_field-10, source_field)
-            pieces_to_take[moves_length] = source_field-5
-            moves_length++
-        }
+        ubyte current_player_king = opponents[who_waits*2+1]
+        ubyte opponents_piece = opponents[who_plays*2]
+        ubyte opponents_king = opponents[who_plays*2+1]
 
-        ;can jump forward left
-        if (source_field >= 12 and board_fields[source_field] == piece_color[who_plays] and board_fields[source_field-12] == EMPTY_FIELD and board_fields[source_field-6] == piece_color[who_waits]) {
-            moves[moves_length] = mkword(source_field-12, source_field)
-            pieces_to_take[moves_length] = source_field-6
-            moves_length++
-        }
+        if (board_fields[source_field] == current_player_king) {
+            ubyte j
+            for j in source_field + 6 to $30 step 6 {
+                if (board_fields[j] == FAKE_FIELD) {
+                    ;edge of the board achieved
+                    break    
+                }
+                ;matches opponent's piece and opponent's king
+                if (board_fields[j] == opponents_piece or board_fields[j] == opponents_king) {
+                    if (board_fields[j+6] == EMPTY_FIELD) {
+                        store_move(source_field, j+6, j)
+                    }
+                    break
+                }                
+            }
+            for j in source_field + 5 to $30 step 5 {
+                if (board_fields[j] == FAKE_FIELD) {
+                    ;edge of the board achieved
+                    break    
+                }                
+                ;matches opponent's piece and opponent's king
+                if (board_fields[j] == opponents_piece or board_fields[j] == opponents_king) {
+                    if (board_fields[j+5] == EMPTY_FIELD) {
+                        store_move(source_field, j+5, j)
+                    }
+                    break
+                }                
+            }
+            for j in source_field - 5 to 5 step -5 {
+                if (board_fields[j] == FAKE_FIELD) {
+                    ;edge of the board achieved
+                    break    
+                }                
+                ;matches opponent's piece and opponent's king
+                if (board_fields[j] == opponents_piece or board_fields[j] == opponents_king) {
+                    if (board_fields[j-5] == EMPTY_FIELD) {
+                        store_move(source_field, j-5, j)
+                    }
+                    break
+                }                
+            }
+            for j in source_field - 6 to 6 step -6 {
+                if (board_fields[j] == FAKE_FIELD) {
+                    ;edge of the board achieved
+                    break    
+                }                
+                ;matches opponent's piece and opponent's king
+                if (board_fields[j] == opponents_piece or board_fields[j] == opponents_king) {
+                    if (board_fields[j-6] == EMPTY_FIELD) {
+                        store_move(source_field, j-6, j)
+                    }
+                    break
+                }                
+            }
+        } else {
+            ;can jump forward right
+            if (source_field >= 10 and board_fields[source_field] == piece_color[who_plays] and board_fields[source_field-10] == EMPTY_FIELD and (board_fields[source_field-5] == opponents_piece or board_fields[source_field-5] == opponents_king)) {
+                moves[moves_length] = mkword(source_field-10, source_field)
+                pieces_to_take[moves_length] = source_field-5
+                moves_length++
+            }
 
-        ;can jump backward left
-        if (source_field < BOARD_FIELDS - 10 and board_fields[source_field] == piece_color[who_plays] and board_fields[source_field+10] == EMPTY_FIELD and board_fields[source_field+5] == piece_color[who_waits]) {
-            moves[moves_length] = mkword(source_field+10, source_field)
-            pieces_to_take[moves_length] = source_field+5
-            moves_length++
-        }
+            ;can jump forward left
+            if (source_field >= 12 and board_fields[source_field] == piece_color[who_plays] and board_fields[source_field-12] == EMPTY_FIELD and (board_fields[source_field-6] == opponents_piece or board_fields[source_field-6] == opponents_king)) {
+                moves[moves_length] = mkword(source_field-12, source_field)
+                pieces_to_take[moves_length] = source_field-6
+                moves_length++
+            }
 
-        ;can jump backward right
-        if (source_field < BOARD_FIELDS - 12 and board_fields[source_field] == piece_color[who_plays] and board_fields[source_field+12] == EMPTY_FIELD and board_fields[source_field+6] == piece_color[who_waits]) {
-            moves[moves_length] = mkword(source_field+12, source_field)
-            pieces_to_take[moves_length] = source_field+6
-            moves_length++
-        }         
+            ;can jump backward left
+            if (source_field < BOARD_FIELDS - 10 and board_fields[source_field] == piece_color[who_plays] and board_fields[source_field+10] == EMPTY_FIELD and (board_fields[source_field+5] == opponents_piece or board_fields[source_field+5] == opponents_king)) {
+                moves[moves_length] = mkword(source_field+10, source_field)
+                pieces_to_take[moves_length] = source_field+5
+                moves_length++
+            }
+
+            ;can jump backward right
+            if (source_field < BOARD_FIELDS - 12 and board_fields[source_field] == piece_color[who_plays] and board_fields[source_field+12] == EMPTY_FIELD and (board_fields[source_field+6] == opponents_piece or board_fields[source_field+6] == opponents_king)) {
+                moves[moves_length] = mkword(source_field+12, source_field)
+                pieces_to_take[moves_length] = source_field+6
+                moves_length++
+            }  
+        }       
     }
 
     sub calculate_regular_moves() {
         ubyte i
+        ubyte current_player_king = opponents[who_waits*2+1]
         for i in 0 to BOARD_FIELDS - 1 {
-            if (who_plays == WHITE) {
+            if (board_fields[i] == current_player_king) {
+                ubyte j
+                for j in i + 6 to $35 step 6 {
+                    if (board_fields[j] == EMPTY_FIELD) {
+                        store_move(i, j, 255)
+                    } else {
+                        break
+                    }                  
+                }
+                for j in i + 5 to $35 step 5 {
+                    if (board_fields[j] == EMPTY_FIELD) {
+                        store_move(i, j, 255)
+                    } else {
+                        break
+                    }                    
+                }
+                for j in i - 6 to 0 step -6 {
+                    if (board_fields[j] == EMPTY_FIELD) {
+                        store_move(i, j, 255)
+                    } else {
+                        break
+                    }                     
+                }
+                for j in i - 5 to 0 step -5 {
+                    if (board_fields[j] == EMPTY_FIELD) {
+                        store_move(i, j, 255)
+                    } else {
+                        break
+                    }                    
+                }                               
+            } else if (who_plays == WHITE and board_fields[i] == WHITE_PIECE) {
                 ;can forward right
-                if (i >= 5 and board_fields[i] == WHITE_PIECE and board_fields[i-5] == EMPTY_FIELD) {
-                    moves[moves_length] = mkword(i-5, i)
-                    pieces_to_take[moves_length] = 255
-                    moves_length++
+                if (i >= 5 and board_fields[i-5] == EMPTY_FIELD) {
+                    store_move(i, i-5, 255)
                 }
 
                 ;can forward left
-                if (i >= 6 and board_fields[i] == WHITE_PIECE and board_fields[i-6] == EMPTY_FIELD) {
-                    moves[moves_length] = mkword(i-6, i)
-                    pieces_to_take[moves_length] = 255
-                    moves_length++
+                if (i >= 6 and board_fields[i-6] == EMPTY_FIELD) {
+                    store_move(i, i-6, 255)
                 }
-            }  else {
+            }  else if (board_fields[i] == BLACK_PIECE) {
                 ;can backward left
-                if (i < BOARD_FIELDS - 5 and board_fields[i] == BLACK_PIECE and board_fields[i+5] == EMPTY_FIELD) {
-                    moves[moves_length] = mkword(i+5, i)
-                    pieces_to_take[moves_length] = 255
-                    moves_length++
+                if (i < BOARD_FIELDS - 5 and board_fields[i+5] == EMPTY_FIELD) {
+                    store_move(i, i+5, 255)
                 }
 
                 ;can backward right
-                if (i < BOARD_FIELDS - 6 and board_fields[i] == BLACK_PIECE and board_fields[i+6] == EMPTY_FIELD) {
-                    moves[moves_length] = mkword(i+6, i)
-                    pieces_to_take[moves_length] = 255
-                    moves_length++
+                if (i < BOARD_FIELDS - 6 and board_fields[i+6] == EMPTY_FIELD) {
+                    store_move(i, i+6, 255)
                 }                
             }                           
         }
+    }
+
+    sub store_move(ubyte source, ubyte destination, ubyte piece_to_take) {
+        moves[moves_length] = mkword(destination, source)
+        pieces_to_take[moves_length] = piece_to_take
+        moves_length++        
     }
 
 
@@ -149,11 +239,12 @@ board {
         return -1
     }
 
-    sub is_jump(uword move) -> ubyte {
+    sub is_regular_jump(uword move) -> ubyte {
         ubyte source_field = lsb(move)
         ubyte destination_field = msb(move)
+        ubyte current_player_piece = opponents[who_waits*2]
 
-        if (abs(source_field - destination_field) > 6) {
+        if (board_fields[destination_field] == current_player_piece and abs(source_field - destination_field) > 6) {
             return true
         }
 
@@ -173,7 +264,8 @@ board {
             board_fields[pieces_to_take[move_index]] = EMPTY_FIELD
         }
 
-        if (is_jump(move)) {
+        ;obligatory jumps
+        if (is_regular_jump(move)) {
             moves_length = 0
             calculate_jumps_from(destination_field)
             if (moves_length > 0) {
@@ -182,6 +274,15 @@ board {
             }
         }
 
+        ;promoting to king
+        if (who_plays == WHITE and destination_field < 5) {
+            board_fields[destination_field] = WHITE_KING
+        }
+        if (who_plays == BLACK and destination_field > $30) {
+            board_fields[destination_field] = BLACK_KING
+        }
+
+        ;swap turn
         if (who_plays == WHITE) {
             who_plays = BLACK
             who_waits = WHITE

@@ -86,8 +86,10 @@ ui {
                 } else {
                     when board.board_fields[xy_to_index(x, y)] {
                         0 -> draw_empty_field(x, y) ;EMPTY_FIELD const doesnt work
-                        1 -> draw_black_piece(x, y) ;BLACK_PIECE const doesnt work
-                        2 -> draw_white_piece(x, y) ;WHITE_PIECE const doesnt work
+                        1 -> draw_black_piece(x, y, false) ;BLACK_PIECE const doesnt work
+                        2 -> draw_white_piece(x, y, false) ;WHITE_PIECE const doesnt work
+                        3 -> draw_black_piece(x, y, true) ;BLACK_KING const doesnt work
+                        4 -> draw_white_piece(x, y, true) ;WHITE_KING const doesnt work
                     }
                 }
             }
@@ -116,14 +118,22 @@ ui {
         return DARK_FIELD_COLOR        
     }
 
-    sub draw_white_piece(ubyte x, ubyte y) {
+    sub draw_white_piece(ubyte x, ubyte y, ubyte is_king) {
         txt.color2(WHITE_CHECKER_COLOR, get_bg_color(x, y))
-        draw_piece(x, y)
+        if (is_king) {
+            draw_king(x, y)
+        } else {
+            draw_piece(x, y)
+        }
     }
 
-    sub draw_black_piece(ubyte x, ubyte y) {
+    sub draw_black_piece(ubyte x, ubyte y, ubyte is_king) {
         txt.color2(BLACK_CHECKER_COLOR, get_bg_color(x, y))
-        draw_piece(x, y)
+        if (is_king) {
+            draw_king(x, y)
+        } else {
+            draw_piece(x, y)
+        }
     }
 
     sub draw_piece(ubyte x, ubyte y) {
@@ -131,6 +141,13 @@ ui {
         txt.print("UI")
         txt.plot(x * 2 + BOARD_X_OFFSET, y * 2 + 1 + BOARD_Y_OFFSET)
         txt.print("JK")
+    }
+
+    sub draw_king(ubyte x, ubyte y) {
+        txt.plot(x * 2 + BOARD_X_OFFSET, y * 2 + BOARD_Y_OFFSET)
+        txt.print("NM")
+        txt.plot(x * 2 + BOARD_X_OFFSET, y * 2 + 1 + BOARD_Y_OFFSET)
+        txt.print("MN")
     }
 
     sub draw_info() {
