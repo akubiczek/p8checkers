@@ -5,6 +5,7 @@
 #include board.p8
 #include agent.p8
 
+
 main {
 
     const ubyte GAME_MODE_PVC = 1
@@ -17,8 +18,6 @@ main {
         board.reset()
         ui.init()
         game_mode = ui.ask_who_plays()
-
-        board.calculate_legal_moves()
         
         while not board.is_game_over() {
             byte move_index
@@ -32,7 +31,6 @@ main {
 
             if (move_index != -1) {
                 board.make_move(move_index)
-                board.calculate_legal_moves()
             }
 
             ui.draw_board()
@@ -45,3 +43,4 @@ main {
         return game_mode == GAME_MODE_CVC or (game_mode == GAME_MODE_PVC and board.who_plays == board.BLACK)
     }
 }
+

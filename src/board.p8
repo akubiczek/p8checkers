@@ -39,60 +39,67 @@ board {
 
         who_plays = WHITE
         who_waits = BLACK
+
+        calculate_legal_moves()
     }
 
     sub calculate_legal_moves() {
         moves_length = 0
 
+        txt.plot(0, 0)
+        
         calculate_jumps()
         if (moves_length == 0) {
-            calculate_regular_moves()
+            calculate_regular_moves ()
+            txt.print_ub(moves_length)
+            txt.print(" m  ")            
+        } else {
+            txt.print_ub(moves_length)
+            txt.print(" j  ")        
         }
-
-        txt.plot(0, 3)
-        txt.print("moves:")
+        
         ubyte i
-        for i in 0 to moves_length - 1 {
-            txt.plot(0, 4 + i)
+        for i in 0 to 20 {
+            txt.plot(0, 1 + i)
             txt.print_uwhex(moves[i], 0)
-        }
-        for i in moves_length to moves_length + 5 {
-            txt.plot(0, 4 + i)
-            txt.print("      ")
         }
     }
 
     sub calculate_jumps() {
         ubyte i
         for i in 0 to BOARD_FIELDS - 1 {
-            ;can jump forward right
-            if (i >= 10  and board_fields[i] == piece_color[who_plays] and board_fields[i-10] == EMPTY_FIELD and board_fields[i-5] == piece_color[who_waits]) {
-                moves[moves_length] = mkword(i-10, i)
-                pieces_to_take[moves_length] = i-5
-                moves_length++
-            }
-
-            ;can jump forward left
-            if (i >= 12  and board_fields[i] == piece_color[who_plays] and board_fields[i-12] == EMPTY_FIELD and board_fields[i-6] == piece_color[who_waits]) {
-                moves[moves_length] = mkword(i-12, i)
-                pieces_to_take[moves_length] = i-6
-                moves_length++
-            }
-
-            ;can jump backward left
-            if (i < BOARD_FIELDS - 10  and board_fields[i] == piece_color[who_plays] and board_fields[i+10] == EMPTY_FIELD and board_fields[i+5] == piece_color[who_waits]) {
-                moves[moves_length] = mkword(i+10, i)
-                pieces_to_take[moves_length] = i+5
-                moves_length++
-            }
-
-            ;can jump backward right
-            if (i < BOARD_FIELDS - 12  and board_fields[i] == piece_color[who_plays] and board_fields[i+12] == EMPTY_FIELD and board_fields[i+6] == piece_color[who_waits]) {
-                moves[moves_length] = mkword(i+12, i)
-                pieces_to_take[moves_length] = i+6
-                moves_length++
-            }                      
+            calculate_jumps_from(i)       
         }        
+    }
+
+    sub calculate_jumps_from(ubyte source_field) {
+        ;can jump forward right
+        if (source_field >= 10 and board_fields[source_field] == piece_color[who_plays] and board_fields[source_field-10] == EMPTY_FIELD and board_fields[source_field-5] == piece_color[who_waits]) {
+            moves[moves_length] = mkword(source_field-10, source_field)
+            pieces_to_take[moves_length] = source_field-5
+            moves_length++
+        }
+
+        ;can jump forward left
+        if (source_field >= 12 and board_fields[source_field] == piece_color[who_plays] and board_fields[source_field-12] == EMPTY_FIELD and board_fields[source_field-6] == piece_color[who_waits]) {
+            moves[moves_length] = mkword(source_field-12, source_field)
+            pieces_to_take[moves_length] = source_field-6
+            moves_length++
+        }
+
+        ;can jump backward left
+        if (source_field < BOARD_FIELDS - 10 and board_fields[source_field] == piece_color[who_plays] and board_fields[source_field+10] == EMPTY_FIELD and board_fields[source_field+5] == piece_color[who_waits]) {
+            moves[moves_length] = mkword(source_field+10, source_field)
+            pieces_to_take[moves_length] = source_field+5
+            moves_length++
+        }
+
+        ;can jump backward right
+        if (source_field < BOARD_FIELDS - 12 and board_fields[source_field] == piece_color[who_plays] and board_fields[source_field+12] == EMPTY_FIELD and board_fields[source_field+6] == piece_color[who_waits]) {
+            moves[moves_length] = mkword(source_field+12, source_field)
+            pieces_to_take[moves_length] = source_field+6
+            moves_length++
+        }         
     }
 
     sub calculate_regular_moves() {
@@ -142,15 +149,37 @@ board {
         return -1
     }
 
+    sub is_jump(uword move) -> ubyte {
+        ubyte source_field = lsb(move)
+        ubyte destination_field = msb(move)
+
+        if (abs(source_field - destination_field) > 6) {
+            return true
+        }
+
+        return false
+    }
+
     sub make_move(byte move_index) {
         ;move is encoded into a single word: lsb is a source field index, msb is a destination field index
         uword move = moves[move_index]
+        ubyte source_field = lsb(move)
+        ubyte destination_field = msb(move)
 
-        board_fields[msb(move)] = board_fields[lsb(move)]
-        board_fields[lsb(move)] = EMPTY_FIELD
+        board_fields[destination_field] = board_fields[source_field]
+        board_fields[source_field] = EMPTY_FIELD
 
         if (pieces_to_take[move_index] != 255) {
             board_fields[pieces_to_take[move_index]] = EMPTY_FIELD
+        }
+
+        if (is_jump(move)) {
+            moves_length = 0
+            calculate_jumps_from(destination_field)
+            if (moves_length > 0) {
+                ;there are some obligatory jumps
+                return
+            }
         }
 
         if (who_plays == WHITE) {
@@ -160,6 +189,8 @@ board {
             who_plays = WHITE
             who_waits = BLACK
         }
+
+        calculate_legal_moves()
     }
 
     sub is_game_over() -> ubyte {
