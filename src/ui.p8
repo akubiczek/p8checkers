@@ -1,26 +1,68 @@
+%import syslib
+
 ui {
     const ubyte BOARD_X_OFFSET = 10
     const ubyte BOARD_Y_OFFSET = 3
 
+    const ubyte SCREEN_BACKGROUND_COLOR = 0
     const ubyte WHITE_CHECKER_COLOR = 1
-    const ubyte BLACK_CHECKER_COLOR = 8
-    const ubyte LIGHT_FIELD_COLOR = 6
-    const ubyte DARK_FIELD_COLOR = 3
-    const ubyte CURSOR_BG_COLOR = 10
-    const ubyte CHOOSEN_BG_COLOR = 5
+    const ubyte BLACK_CHECKER_COLOR = 2
+    const ubyte LIGHT_FIELD_COLOR = 3
+    const ubyte DARK_FIELD_COLOR = 4
+    const ubyte ILLEGAL_MOVE_COLOR = 7
+    const ubyte CURSOR_BG_COLOR = 5
+    const ubyte CHOOSEN_BG_COLOR = 6
+    const ubyte TITLE_COLOR1 = 6
+    const ubyte TITLE_COLOR2 = 1
+ 
+    ;7-colors, RGB, 8-bit each for my convinient :)
+    %option force_output
+    ubyte[] pallete = [
+        $3C >> 4, ($2D >> 4 << 4) | ($12 >> 4), ;0 SCREEN_BACKGROUND_COLOR
+        $f9 >> 4, ($e1 >> 4 << 4) | ($c5 >> 4), ;1 WHITE_CHECKER_COLOR #F9E1C5
+        $4c >> 4, ($3c >> 4 << 4) | ($39 >> 4), ;2 BLACK_CHECKER_COLOR 283618 #433C39
+        $ec >> 4, ($c3 >> 4 << 4) | ($96 >> 4), ;3 LIGHT_FIELD_COLOR #ECC396
+        $a7 >> 4, ($50 >> 4 << 4) | ($27 >> 4), ;4 DARK_FIELD_COLOR  #A75027 #A75027
+        $dc >> 4, ($98 >> 4 << 4) | ($30 >> 4), ;5 CURSOR_BG_COLOR #DC9830
+        80 >> 4, (104 >> 4 << 4) | (74 >> 4), ;6 CHOOSEN_BG_COLOR
+        $ea >> 4, ($6d >> 4 << 4) | ($57 >> 4) ;7 ILLEGAL_MOVE_COLOR #EA6D57
+    ]
 
     ubyte cursor_x = board.BOARD_WIDTH - 1
     ubyte cursor_y = board.BOARD_HEIGHT - 1
 
     ubyte choosen_piece_x = 255
-    ubyte choosen_piece_y = 255
+    ubyte choosen_piece_y = 255 
 
     sub init() {
         void cx16.screen_set_mode(0)
-
+        txt.fill_screen($20,SCREEN_BACKGROUND_COLOR << 4) ;clear screen and colors
+        set_pallete_color()
         ui.draw_info()
         ui.draw_board()        
-    }    
+    }
+
+    asmsub set_pallete_color() clobbers (A,X) {
+        %asm {{
+            stz cx16.VERA_CTRL
+            lda #$00
+            sta cx16.VERA_ADDR_L
+            lda #$FA
+            sta cx16.VERA_ADDR_M
+            lda #%00010001
+            sta cx16.VERA_ADDR_H
+            ldx #0
+        loop:
+            lda pallete+1,x        
+            sta cx16.VERA_DATA0
+            lda pallete,x
+            sta cx16.VERA_DATA0
+            inx
+            inx
+            cpx #8*2
+            bne loop
+        }} 
+    }
 
     sub ask_who_plays() -> ubyte {
         txt.color2(1, 6)
@@ -43,7 +85,8 @@ ui {
             key=c64.GETIN()
         } until key >= 49 and key <= 51
         
-        txt.fill_screen(0,0) ;clear screen and colors
+        txt.color2(SCREEN_BACKGROUND_COLOR, SCREEN_BACKGROUND_COLOR)
+        txt.fill_screen($20,SCREEN_BACKGROUND_COLOR) ;clear screen and colors
         ui.draw_info()
         ui.draw_board()
 
@@ -110,12 +153,12 @@ ui {
             return CHOOSEN_BG_COLOR
         }
         else if (x == cursor_x and y == cursor_y) {
-            return CURSOR_BG_COLOR 
+            return CURSOR_BG_COLOR
         } else if ((x + y) % 2) {
-            return LIGHT_FIELD_COLOR
+            return DARK_FIELD_COLOR
         }
 
-        return DARK_FIELD_COLOR        
+        return LIGHT_FIELD_COLOR
     }
 
     sub draw_white_piece(ubyte x, ubyte y, ubyte is_king) {
@@ -152,15 +195,13 @@ ui {
 
     sub draw_info() {
         txt.plot(13, 1)
-        txt.color(7)
+        txt.color(TITLE_COLOR1)
         txt.print("polish")
-        txt.color(5)
+        txt.color(TITLE_COLOR2)
         txt.print(" draughts")
 
-        txt.plot(1, 24)
-        txt.print("shift+n - new game")
-        txt.plot(1, 25)
-        txt.print("c - change colors")
+        txt.plot(0, 29)
+        txt.print("shift+n - new game : c - change colors")
     }
 
     sub draw_gameover() {
