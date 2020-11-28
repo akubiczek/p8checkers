@@ -1,11 +1,10 @@
 %import textio
 %zeropage basicsafe
 
+#define target cx16
 #include ui.p8
 #include board.p8
 #include agent.p8
-#define target c64
-
 
 main {
 
@@ -16,28 +15,30 @@ main {
     ubyte game_mode = 0
 
     sub start ()  {
-        board.reset()
-        ui.init()
-        game_mode = ui.ask_who_plays()
-        
-        while not board.is_game_over() {
-            byte move_index
+        repeat {
+            board.reset()
+            ui.init()
+            game_mode = ui.ask_who_plays()
+            
+            while not board.is_game_over() {
+                byte move_index
 
-            if (is_computer_move()) {
-                move_index = agent.get_move()
-            } else {
-                uword move = ui.get_user_move()
-                move_index = board.legal_move_index(move)
+                if (is_computer_move()) {
+                    move_index = agent.get_move()
+                } else {
+                    uword move = ui.get_user_move()
+                    move_index = board.legal_move_index(move)
+                }
+
+                if (move_index != -1) {
+                    board.make_move(move_index)
+                }
+
+                ui.draw_board()
             }
 
-            if (move_index != -1) {
-                board.make_move(move_index)
-            }
-
-            ui.draw_board()
+            ui.draw_gameover(board.who_waits)
         }
-
-        ui.draw_gameover()
     }
 
     sub is_computer_move() -> ubyte {

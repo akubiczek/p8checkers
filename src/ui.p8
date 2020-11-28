@@ -14,6 +14,8 @@ ui {
     const ubyte CHOOSEN_BG_COLOR = 6
     const ubyte TITLE_COLOR1 = 6
     const ubyte TITLE_COLOR2 = 1
+    const ubyte DIALOG_BG_COLOR = 6
+    const ubyte DIALOG_TEXT_COLOR = 1
  
     ;7-colors, RGB, 8-bit each for my convinient :)
     %option force_output
@@ -72,23 +74,24 @@ ui {
     sub ask_who_plays() -> ubyte {
 
         #ifeq target cx16
-        txt.color2(1, 6)
+        txt.color2(DIALOG_TEXT_COLOR, DIALOG_BG_COLOR)
         #endif
 
         txt.plot(5, 10)
-        txt.print("                               ")
+        txt.print("                              ")
         txt.plot(5, 11)
-        txt.print("           who plays?          ")
+        txt.print("           who plays?         ")
         txt.plot(5, 12)
-        txt.print("                               ")
+        txt.print("                              ")
         txt.plot(5, 13)
-        txt.print("   1 - player vs computer      ")
+        txt.print("   1 - player vs computer     ")
         txt.plot(5, 14)
-        txt.print("   2 - player vs player        ")
+        txt.print("   2 - player vs player       ")
         txt.plot(5, 15)
-        txt.print("   3 - computer vs computer    ")
+        txt.print("   3 - computer vs computer   ")
         txt.plot(5, 16)
-        txt.print("                               ")
+        txt.print("                              ")
+
         ubyte key
         do {
             key=c64.GETIN()
@@ -194,7 +197,7 @@ ui {
         #ifeq target cx16
         txt.color2(BLACK_CHECKER_COLOR, get_bg_color(x, y))
         #endif
-        
+
         if (is_king) {
             draw_king(x, y)
         } else {
@@ -227,10 +230,43 @@ ui {
         txt.print("shift+n - new game : c - change colors")
     }
 
-    sub draw_gameover() {
-        txt.plot(13, 10)
-        txt.color(7)
-        txt.print("game over")        
+    sub draw_gameover(ubyte winner) {
+
+        #ifeq target cx16
+        txt.color2(DIALOG_TEXT_COLOR, DIALOG_BG_COLOR)
+        #endif
+
+        txt.plot(5, 10)
+        txt.print("                              ")
+        txt.plot(5, 11)
+        txt.print("           game over!         ")
+        txt.plot(5, 12)
+        txt.print("                              ")
+        txt.plot(5, 13)
+        if winner == board.WHITE {
+            txt.print("      white is the winner     ")
+        } else if winner == board.BLACK {
+            txt.print("      black is the winner     ")
+        } else {
+            txt.print("        it is a draw          ")
+        }
+        txt.plot(5, 14)
+        txt.print("                              ")
+        
+        ubyte key
+        do {
+            key=c64.GETIN()
+        } until key != 0
+        
+        #ifeq target cx16
+        txt.color2(SCREEN_BACKGROUND_COLOR, SCREEN_BACKGROUND_COLOR)
+        #endif
+
+        txt.fill_screen($20,SCREEN_BACKGROUND_COLOR) ;clear screen and colors
+        ui.draw_info()
+        ui.draw_board()
+
+        return
     }
 
     sub clear_choosen_piece() {
