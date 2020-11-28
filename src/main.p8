@@ -4,6 +4,7 @@
 #include ui.p8
 #include board.p8
 #include agent.p8
+#define target c64
 
 
 main {

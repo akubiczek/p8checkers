@@ -34,14 +34,18 @@ ui {
     ubyte choosen_piece_x = 255
     ubyte choosen_piece_y = 255 
 
-    sub init() {
+    sub init() {        
+        #ifeq target cx16
         void cx16.screen_set_mode(0)
-        txt.fill_screen($20,SCREEN_BACKGROUND_COLOR << 4) ;clear screen and colors
         set_pallete_color()
+        #endif
+
+        txt.fill_screen($20,SCREEN_BACKGROUND_COLOR << 4) ;clear screen and colors
         ui.draw_info()
         ui.draw_board()        
     }
 
+    #ifeq target cx16
     asmsub set_pallete_color() clobbers (A,X) {
         %asm {{
             stz cx16.VERA_CTRL
@@ -63,9 +67,14 @@ ui {
             bne loop
         }} 
     }
+    #endif
 
     sub ask_who_plays() -> ubyte {
+
+        #ifeq target cx16
         txt.color2(1, 6)
+        #endif
+
         txt.plot(5, 10)
         txt.print("                               ")
         txt.plot(5, 11)
@@ -85,7 +94,10 @@ ui {
             key=c64.GETIN()
         } until key >= 49 and key <= 51
         
+        #ifeq target cx16
         txt.color2(SCREEN_BACKGROUND_COLOR, SCREEN_BACKGROUND_COLOR)
+        #endif
+
         txt.fill_screen($20,SCREEN_BACKGROUND_COLOR) ;clear screen and colors
         ui.draw_info()
         ui.draw_board()
@@ -140,7 +152,10 @@ ui {
     }
 
     sub draw_empty_field(ubyte x, ubyte y) {
+
+        #ifeq target cx16
         txt.color2(0, get_bg_color(x, y))
+        #endif
 
         txt.plot(x*2 + BOARD_X_OFFSET, y*2 + BOARD_Y_OFFSET)
         txt.print("  ")
@@ -162,7 +177,11 @@ ui {
     }
 
     sub draw_white_piece(ubyte x, ubyte y, ubyte is_king) {
+
+        #ifeq target cx16
         txt.color2(WHITE_CHECKER_COLOR, get_bg_color(x, y))
+        #endif
+
         if (is_king) {
             draw_king(x, y)
         } else {
@@ -171,7 +190,11 @@ ui {
     }
 
     sub draw_black_piece(ubyte x, ubyte y, ubyte is_king) {
+
+        #ifeq target cx16
         txt.color2(BLACK_CHECKER_COLOR, get_bg_color(x, y))
+        #endif
+        
         if (is_king) {
             draw_king(x, y)
         } else {

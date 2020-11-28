@@ -1,0 +1,3 @@
+gpp -o build/main.p8 src/main.p8
+java -jar /usr/local/bin/prog8compiler-5.1-all.jar -out build -target c64 build/main.p8
+#/Applications/vice-gtk3-3.4-r38687/bin/x64sc build/main.prg
