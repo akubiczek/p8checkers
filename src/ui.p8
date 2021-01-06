@@ -90,12 +90,21 @@ ui {
         txt.plot(5, 15)
         txt.print("   3 - computer vs computer   ")
         txt.plot(5, 16)
-        txt.print("                              ")
+        #ifdef debug
+        txt.print("   4 - run test suit          ")
+        txt.plot(5, 17)
+        #endif
+        txt.print("                              ")        
 
         ubyte key
+        ubyte max_key = 51
+        #ifdef debug
+            max_key = 52
+        #endif
+
         do {
             key=c64.GETIN()
-        } until key >= 49 and key <= 51
+        } until key >= 49 and key <= max_key
         
         #ifeq target cx16
         txt.color2(SCREEN_BACKGROUND_COLOR, SCREEN_BACKGROUND_COLOR)
@@ -269,6 +278,25 @@ ui {
         return
     }
 
+    sub draw_debug_data() {
+        ubyte moves_length = board.moves_length;
+        txt.plot(0, 0)      
+        txt.print("moves: ")
+        txt.print_ub(moves_length)
+        txt.print("  ")
+        
+        ubyte i
+        for i in 0 to moves_length {
+            txt.plot(0, 1 + i)
+            txt.print_uwhex(board.moves[i], 0)
+        }  
+
+        for i in moves_length to moves_length+4 {
+            txt.plot(0, 1 + i)
+            txt.print("     ")
+        }               
+    }
+
     sub clear_choosen_piece() {
         choosen_piece_x = 255
         choosen_piece_y = 255
@@ -278,6 +306,7 @@ ui {
         ;move is encoded into a single word: lsb is a source field index, msb is a destination field index
         const ubyte KEY_RETURN = 13
         const ubyte KEY_ESC = 3
+        const ubyte KEY_D = $44
 
         ubyte source = 255
         ubyte destination = 255
@@ -297,6 +326,8 @@ ui {
                 source = 255
                 clear_choosen_piece()
                 draw_board()
+            } else if (key_pressed == KEY_D) {
+                draw_debug_data()
             }
 
         } until source != 255 and destination != 255

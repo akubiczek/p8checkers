@@ -36,7 +36,7 @@ board {
             WHITE_PIECE, WHITE_PIECE, WHITE_PIECE, WHITE_PIECE, WHITE_PIECE, FAKE_FIELD,
             WHITE_PIECE, WHITE_PIECE, WHITE_PIECE, WHITE_PIECE, WHITE_PIECE,
             WHITE_PIECE, WHITE_PIECE, WHITE_PIECE, WHITE_PIECE, WHITE_PIECE
-        ] 
+        ]      
 
         who_plays = WHITE
         who_waits = BLACK
@@ -47,23 +47,10 @@ board {
     sub calculate_legal_moves() {
         moves_length = 0
 
-        txt.plot(0, 0)
-        
         calculate_jumps()
         if (moves_length == 0) {
-            calculate_regular_moves ()
-            txt.print_ub(moves_length)
-            txt.print(" m  ")            
-        } else {
-            txt.print_ub(moves_length)
-            txt.print(" j  ")        
-        }
-        
-        ubyte i
-        for i in 0 to 20 {
-            txt.plot(0, 1 + i)
-            txt.print_uwhex(moves[i], 0)
-        }
+            calculate_regular_moves()
+        }        
     }
 
     sub calculate_jumps() {
@@ -207,7 +194,7 @@ board {
                 if (i >= 6 and board_fields[i-6] == EMPTY_FIELD) {
                     store_move(i, i-6, 255)
                 }
-            }  else if (board_fields[i] == BLACK_PIECE) {
+            }  else if (who_plays == BLACK and board_fields[i] == BLACK_PIECE) {
                 ;can backward left
                 if (i < BOARD_FIELDS - 5 and board_fields[i+5] == EMPTY_FIELD) {
                     store_move(i, i+5, 255)
@@ -239,12 +226,19 @@ board {
         return -1
     }
 
-    sub is_regular_jump(uword move) -> ubyte {
+    sub is_jump(byte move_index) -> ubyte {
+        uword move = moves[move_index]
         ubyte source_field = lsb(move)
         ubyte destination_field = msb(move)
         ubyte current_player_piece = opponents[who_waits*2]
+        ubyte current_player_king = opponents[who_waits*2+1]
 
-        if (board_fields[destination_field] == current_player_piece and abs(source_field - destination_field) > 6) {
+        ;TODO conditions below can be simplified
+        if board_fields[source_field] == current_player_piece and abs(source_field - destination_field) > 6 {
+            return true
+        }
+
+        if board_fields[source_field] == current_player_king and pieces_to_take[move_index] != 255 and abs(source_field - destination_field) > 6 {
             return true
         }
 
@@ -257,6 +251,8 @@ board {
         ubyte source_field = lsb(move)
         ubyte destination_field = msb(move)
 
+        ubyte was_jump = is_jump(move_index)
+
         board_fields[destination_field] = board_fields[source_field]
         board_fields[source_field] = EMPTY_FIELD
 
@@ -265,17 +261,17 @@ board {
         }
 
         ;obligatory jumps
-        if (is_regular_jump(move)) {
+        if was_jump == true {
             moves_length = 0
             calculate_jumps_from(destination_field)
-            if (moves_length > 0) {
+            if moves_length > 0 {
                 ;there are some obligatory jumps
                 return
             }
         }
 
         ;promoting to king
-        if (who_plays == WHITE and destination_field < 5) {
+        if (who_plays == WHITE and destination_field < $05) {
             board_fields[destination_field] = WHITE_KING
         }
         if (who_plays == BLACK and destination_field > $30) {

@@ -2,9 +2,14 @@
 %zeropage basicsafe
 
 #define target cx16
+#define debug
 #include ui.p8
 #include board.p8
 #include agent.p8
+
+#ifdef debug
+#include testsuite.p8
+#endif
 
 main {
 
@@ -19,6 +24,13 @@ main {
             board.reset()
             ui.init()
             game_mode = ui.ask_who_plays()
+
+            #ifdef debug
+            if game_mode == 4 {
+               testsuit.run()
+               break
+            }
+            #endif
             
             while not board.is_game_over() {
                 byte move_index
