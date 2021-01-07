@@ -11,7 +11,9 @@ testsuit {
     sub run() {
         txt.plot(0, 0)
         txt.fill_screen($20,ui.SCREEN_BACKGROUND_COLOR << 4) ;clear screen and colors
+        #ifeq target cx16
         txt.color2(ui.DIALOG_TEXT_COLOR, ui.SCREEN_BACKGROUND_COLOR)
+        #endif
         txt.print("running test1")
         test1()
         txt.print("running test2")
@@ -20,18 +22,28 @@ testsuit {
         test3()
         txt.print("running test4")
         test4()
+        txt.print("running test5")
+        test5()        
     }
 
     sub passed() {
+        #ifeq target cx16
         txt.color2(ui.DIALOG_TEXT_COLOR, ui.SCREEN_BACKGROUND_COLOR)
+        #endif
         txt.print("passed")
+        #ifeq target cx16
         txt.color2(ui.DIALOG_TEXT_COLOR, ui.SCREEN_BACKGROUND_COLOR)
+        #endif
     }
 
     sub failed() {
+        #ifeq target cx16
         txt.color2(ui.DIALOG_TEXT_COLOR, ui.ILLEGAL_MOVE_COLOR)
+        #endif
         txt.print("failed")
+        #ifeq target cx16
         txt.color2(ui.DIALOG_TEXT_COLOR, ui.SCREEN_BACKGROUND_COLOR)
+        #endif
     }
 
     sub test1() {
@@ -172,5 +184,32 @@ testsuit {
         } else {
             failed()
         }                
-    }       
+    }
+
+
+    sub test5() {
+        ubyte[] board_fields = [
+            WHITE_KING, WHITE_KING, EMPTY_FIELD, EMPTY_FIELD, BLACK_PIECE,
+            EMPTY_FIELD, EMPTY_FIELD, EMPTY_FIELD, BLACK_PIECE, BLACK_PIECE, FAKE_FIELD,
+            WHITE_PIECE, EMPTY_FIELD, BLACK_PIECE, BLACK_PIECE, BLACK_PIECE,
+            BLACK_PIECE, EMPTY_FIELD, EMPTY_FIELD, BLACK_PIECE, BLACK_PIECE, FAKE_FIELD,
+            EMPTY_FIELD, EMPTY_FIELD, EMPTY_FIELD, EMPTY_FIELD, EMPTY_FIELD,
+            EMPTY_FIELD, EMPTY_FIELD, WHITE_PIECE, WHITE_PIECE, EMPTY_FIELD, FAKE_FIELD,
+            EMPTY_FIELD, EMPTY_FIELD, WHITE_PIECE, EMPTY_FIELD, WHITE_PIECE,
+            WHITE_PIECE, EMPTY_FIELD, EMPTY_FIELD, EMPTY_FIELD, WHITE_PIECE, FAKE_FIELD,
+            WHITE_PIECE, WHITE_PIECE, WHITE_PIECE, WHITE_PIECE, WHITE_PIECE,
+            WHITE_PIECE, WHITE_PIECE, WHITE_PIECE, WHITE_PIECE, WHITE_PIECE
+        ] 
+
+        board.board_fields = board_fields
+        board.who_plays = board.BLACK
+
+        board.calculate_legal_moves()
+
+        if board.moves_length == 1 and board.moves[0] == $0610 {
+            passed()
+        } else {
+            failed()
+        }           
+    }    
 }

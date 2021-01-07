@@ -15,7 +15,7 @@ board {
     const ubyte BOARD_FIELDS = 54
 
     ubyte[] piece_color = [BLACK_PIECE, WHITE_PIECE]
-    ubyte[BOARD_FIELDS] board_fields   
+    ubyte[BOARD_FIELDS] board_fields
 
     ubyte[] opponents = [WHITE_PIECE, WHITE_KING, BLACK_PIECE, BLACK_KING]
     ubyte who_plays
@@ -215,18 +215,18 @@ board {
     }
 
 
-    ;returns move index in legal moves table or -1 if there is no such move
-    sub legal_move_index(uword move) -> byte {
+    ;returns move index in legal moves table or 255 if there is no such move
+    sub legal_move_index(uword move) -> ubyte {
         ubyte i
         for i in 0 to moves_length - 1 {
             if (moves[i] == move) {
                 return i
             }
         }
-        return -1
+        return 255
     }
 
-    sub is_jump(byte move_index) -> ubyte {
+    sub is_jump(ubyte move_index) -> ubyte {
         uword move = moves[move_index]
         ubyte source_field = lsb(move)
         ubyte destination_field = msb(move)
@@ -245,7 +245,7 @@ board {
         return false
     }
 
-    sub make_move(byte move_index) {
+    sub make_move(ubyte move_index) {
         ;move is encoded into a single word: lsb is a source field index, msb is a destination field index
         uword move = moves[move_index]
         ubyte source_field = lsb(move)

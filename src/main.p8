@@ -6,6 +6,7 @@
 #include ui.p8
 #include board.p8
 #include agent.p8
+#include saved_state.p8
 
 #ifdef debug
 #include testsuite.p8
@@ -33,7 +34,7 @@ main {
             #endif
             
             while not board.is_game_over() {
-                byte move_index
+                ubyte move_index
 
                 if (is_computer_move()) {
                     move_index = agent.get_move()
@@ -42,7 +43,7 @@ main {
                     move_index = board.legal_move_index(move)
                 }
 
-                if (move_index != -1) {
+                if (move_index != 255) {
                     board.make_move(move_index)
                 }
 
