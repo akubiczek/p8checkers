@@ -37,7 +37,7 @@ main {
                 ubyte move_index
 
                 if (is_computer_move()) {
-                    move_index = agent.get_move()
+                    move_index = agent.get_move_nm()
                 } else {
                     uword move = ui.get_user_move()
                     move_index = board.legal_move_index(move)
