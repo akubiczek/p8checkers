@@ -44,7 +44,8 @@ agent {
 
         ubyte direction = DIR_DOWN
         ubyte current_depth = 0
-        ubyte max_depth = 2
+        ubyte max_depth = 3
+        uword iteration = 0
 
         word[MAXMAX_DEPTH] best_score
         ubyte[MAXMAX_DEPTH] best_move
@@ -53,8 +54,15 @@ agent {
 
         repeat {
             ubyte parent = current_depth-1
-            txt.plot(10,1)
-            txt.print_ub(current_depth)
+            iteration++
+            if ui.debug_mode {
+                txt.plot(30,1)
+                txt.print("adepth=")
+                txt.print_ub(current_depth)
+                txt.plot(30,2)
+                txt.print("aiter=")
+                txt.print_uw(iteration)                
+            }
 
             ; do {
             ;     ubyte key=c64.GETIN()
@@ -69,8 +77,10 @@ agent {
                     
                     saved_state.save()
                     board.make_move(0)
-                    ui.draw_board()
-                    
+                    if ui.debug_mode {
+                        ui.draw_board()
+                    }
+
                     current_depth++
                 } else {
                     word leaf_score = -score()
@@ -104,12 +114,17 @@ agent {
                     saved_state.save()
                     board.make_move(current_move[current_depth])
                     
-                    txt.plot(0,0)
-                    txt.print_ub(current_move[current_depth])
-                    txt.print(" ")
+                    if ui.debug_mode {
+                        txt.plot(30,3)
+                        txt.print("acm=")
+                        txt.print_ub(current_move[current_depth])
+                        txt.print(" ")
+                    }                    
 
-                    ui.draw_board()
-
+                    if ui.debug_mode {
+                        ui.draw_board()
+                    }
+                    
                     direction = DIR_DOWN
                     current_depth++    
                 }
@@ -128,10 +143,6 @@ agent {
         ubyte d3
 
         ubyte who_plays2
-
-        txt.plot(0,0)
-        txt.print("          ")
-
         byte color = 1
 
         for d1 in 0 to board.moves_length - 1 {
@@ -203,9 +214,16 @@ agent {
             }                        
         } 
 
-        txt.plot(0,4)
-        txt.print_w(black_score)
-        txt.print_w(white_score)
+        if ui.debug_mode {
+            txt.plot(30,4)
+            txt.print("bs=")
+            txt.print_w(black_score)
+            txt.print(" ")
+            txt.plot(30,5)
+            txt.print("ws=")
+            txt.print_w(white_score)
+            txt.print(" ")
+        } 
 
         ; do {
         ;     ubyte key=c64.GETIN()

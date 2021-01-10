@@ -36,6 +36,8 @@ ui {
     ubyte choosen_piece_x = 255
     ubyte choosen_piece_y = 255 
 
+    ubyte debug_mode = false
+
     sub init() {        
         #ifeq target cx16
         void cx16.screen_set_mode(0)
@@ -280,19 +282,19 @@ ui {
 
     sub draw_debug_data() {
         ubyte moves_length = board.moves_length;
-        txt.plot(0, 0)      
+        txt.plot(0, 1)      
         txt.print("moves: ")
         txt.print_ub(moves_length)
         txt.print("  ")
         
         ubyte i
         for i in 0 to moves_length {
-            txt.plot(0, 1 + i)
+            txt.plot(0, 2 + i)
             txt.print_uwhex(board.moves[i], 0)
         }  
 
         for i in moves_length to moves_length+4 {
-            txt.plot(0, 1 + i)
+            txt.plot(0, 2 + i)
             txt.print("     ")
         }               
     }
@@ -327,7 +329,7 @@ ui {
                 clear_choosen_piece()
                 draw_board()
             } else if (key_pressed == KEY_D) {
-                draw_debug_data()
+                debug_mode = not debug_mode
             }
 
         } until source != 255 and destination != 255

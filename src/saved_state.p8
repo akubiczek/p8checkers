@@ -77,16 +77,26 @@ saved_state {
         moves_length[current_depth] = board.moves_length
 
         current_depth++
-        txt.plot(0,1)
-        txt.print("depth=")
-        txt.print_ub(current_depth)
+        if ui.debug_mode {
+            txt.plot(30,0)
+            txt.print("ssd=")
+            txt.print_ub(current_depth)
+        }        
+
     }
 
     sub restore() {
         current_depth--
-        txt.plot(0,1)
-        txt.print("depth=")
-        txt.print_ub(current_depth)
+        if ui.debug_mode {
+            txt.plot(30,0)
+            txt.print("ssd=")
+            txt.print_ub(current_depth)
+        }
+          
+        board.who_plays = who_plays[current_depth]
+        board.who_waits = who_waits[current_depth]
+        board.moves_length = moves_length[current_depth]
+
         when current_depth {
             0 -> {
                 memcopy(  &memory_block0, &board.board_fields, board.BOARD_FIELDS)
@@ -125,8 +135,5 @@ saved_state {
             }
 
         }        
-        board.who_plays = who_plays[current_depth]
-        board.who_waits = who_waits[current_depth]
-        board.moves_length = moves_length[current_depth]
     }    
 }

@@ -260,12 +260,27 @@ board {
             board_fields[pieces_to_take[move_index]] = EMPTY_FIELD
         }
 
+        if ui.debug_mode {
+            txt.plot(0,0)
+            txt.print("move=")
+            txt.print_ub(move_index)
+            if was_jump == true {
+                txt.print("jmp")
+            } else {
+                txt.print("    ")
+            }
+            ui.draw_debug_data()
+        }        
+
         ;obligatory jumps
         if was_jump == true {
             moves_length = 0
             calculate_jumps_from(destination_field)
             if moves_length > 0 {
                 ;there are some obligatory jumps
+                if ui.debug_mode {
+                    
+                }
                 return
             }
         }
@@ -288,6 +303,8 @@ board {
         }
 
         calculate_legal_moves()
+        if ui.debug_mode {
+        }          
     }
 
     sub is_game_over() -> ubyte {
